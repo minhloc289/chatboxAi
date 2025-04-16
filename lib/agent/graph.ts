@@ -4,6 +4,7 @@ import { END, START, MessagesAnnotation, StateGraph } from "@langchain/langgraph
 import { ToolNode } from "@langchain/langgraph/prebuilt";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { ChatPromptTemplate } from "@langchain/core/prompts";
+import { getPromptTemplate } from "../agent/configuration"; // đảm bảo bạn export hàm này từ configuration.ts
 
 import { ConfigurationSchema, ensureConfiguration } from "../agent/configuration";
 import { TOOLS } from "../agent/tools";
@@ -17,6 +18,8 @@ async function classifyIntent(config: RunnableConfig): Promise<string> {
     temperature: 0,
   });
 
+  
+
   const prompt = CLASSIFY_INTENT_PROMPT.replace("{user_query}", userQuery);
   const response = await model.invoke([{ role: "user", content: prompt }]);
   const intent = typeof response.content === "string" ? response.content.trim().toLowerCase() : "general";
@@ -24,14 +27,27 @@ async function classifyIntent(config: RunnableConfig): Promise<string> {
 }
 
 // Node xử lý intent
+
 async function classify_intent_node(
   state: typeof MessagesAnnotation.State,
   config: RunnableConfig,
 ): Promise<typeof MessagesAnnotation.Update> {
   const intent = await classifyIntent(config);
-  config.configurable = { ...config.configurable, intent };
+  const systemPromptTemplate = getPromptTemplate(intent);
+
+  console.log(">>> Intent:", intent);
+  console.log(">>> System Prompt:", systemPromptTemplate.slice(0, 100) + "...");
+
+
+  config.configurable = {
+    ...config.configurable,
+    intent,
+    systemPromptTemplate, // 👈 cập nhật prompt tương ứng vào config
+  };
+
   return { messages: [...state.messages] };
 }
+
 
 // Gọi model chính để trả lời người dùng
 export async function callModel(
@@ -44,7 +60,6 @@ export async function callModel(
     temperature: 0.7,
   }).bindTools(TOOLS);
 
-  console.log("System prompt template:", configuration.systemPromptTemplate);
 
   const response = await model.invoke([
     {

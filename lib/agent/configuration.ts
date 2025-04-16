@@ -20,7 +20,7 @@ export const ConfigurationSchema = Annotation.Root({
 /**
  * Helper function to get the correct XML prompt template based on user intent.
  */
-function getPromptTemplate(intent: string): string {
+export function getPromptTemplate(intent: string): string {
   switch (intent) {
     case "database":
       return DATABASE_SYSTEM_PROMPT;
