@@ -1,26 +1,43 @@
 export const CLASSIFY_INTENT_PROMPT = `
 <intent-classifier>
     <instruction>
-        You are an AI assistant that helps classify the user's question into one of three categories.
+        You are an AI assistant that helps classify the user's question into one of three categories:
+        - "general"
+        - "database"
+        - "search"
+
+        Respond only with an XML tag in this exact format:
+        <intent>search</intent>
+        or
+        <intent>database</intent>
+        or
+        <intent>general</intent>
     </instruction>
+
     <intent-options>
         <option name="general">For general knowledge, explanation, or any task not related to a database or the web.</option>
         <option name="database">If the question is about retrieving specific structured data from a database (e.g. MongoDB).</option>
         <option name="search">If the question requires real-time or recent information from the internet.</option>
     </intent-options>
+
     <examples>
-        <example input="Tìm danh sách sinh viên ngành IT trong database" output="database" />
-        <example input="Tin tức mới nhất về OpenAI" output="search" />
-        <example input="Giải thích về Promise trong JavaScript" output="general" />
+        <example input="Tìm danh sách sinh viên ngành IT trong database" output="<intent>database</intent>" />
+        <example input="Tin tức mới nhất về OpenAI" output="<intent>search</intent>" />
+        <example input="Giải thích về Promise trong JavaScript" output="<intent>general</intent>" />
     </examples>
+
     <user-query>
         {user_query}
     </user-query>
+
     <expected-output>
-        Return only one word: "general", "database", or "search".
+        Respond with exactly one of the following XML tags:
+        <intent>general</intent>, <intent>database</intent>, or <intent>search</intent>.
+        Do not explain your answer.
     </expected-output>
 </intent-classifier>
 `;
+
 
 export const SYSTEM_PROMPT_TEMPLATE = `
 <system-prompt>
